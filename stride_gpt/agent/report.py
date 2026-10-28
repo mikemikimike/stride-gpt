@@ -144,6 +144,9 @@ def render_markdown(report: AnalysisReport) -> str:
     if report.systemic_observations:
         lines.append(f"- **Systemic observations**: {len(report.systemic_observations)}")
     lines.extend(_synthesis_dropped_lines(report.metadata))
+    synthesis_error_class = (report.metadata or {}).get("synthesis_error_class")
+    if isinstance(synthesis_error_class, str) and synthesis_error_class:
+        lines.append(f"- **Synthesis failed**: {synthesis_error_class}")
     if report.metadata:
         lines.append(f"- **LLM calls**: {report.metadata.get('llm_calls', 'N/A')}")
         lines.append(f"- **Tool calls**: {report.metadata.get('tool_calls', 'N/A')}")
@@ -699,6 +702,9 @@ def render_markdown_from_json(data: dict[str, Any]) -> str:
     if systemic:
         lines.append(f"- **Systemic observations**: {len(systemic)}")
     lines.extend(_synthesis_dropped_lines(metadata))
+    synthesis_error_class = (metadata or {}).get("synthesis_error_class")
+    if isinstance(synthesis_error_class, str) and synthesis_error_class:
+        lines.append(f"- **Synthesis failed**: {synthesis_error_class}")
     if metadata:
         lines.append(f"- **LLM calls**: {metadata.get('llm_calls', 'N/A')}")
         lines.append(f"- **Tool calls**: {metadata.get('tool_calls', 'N/A')}")

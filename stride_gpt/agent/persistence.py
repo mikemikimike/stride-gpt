@@ -114,6 +114,7 @@ class RunSummary(BaseModel):
     # nothing reports zero. Always zero for /quick, which has no synthesis.
     synthesis_items_dropped: int = 0
     synthesis_dropped: list[dict[str, str]] = []
+    synthesis_error_class: str | None = None
 
 
 class RunManifest(BaseModel):
@@ -487,6 +488,7 @@ def build_analyze_manifest(
     rerun_subsystems: list[str] | None = None,
     token_usage_by_phase: dict[str, dict[str, int | None]] | None = None,
     synthesis_dropped: list[dict[str, str]] | None = None,
+    synthesis_error_class: str | None = None,
 ) -> RunManifest:
     """Assemble the manifest for a /analyze run.
 
@@ -511,7 +513,7 @@ def build_analyze_manifest(
     for usage in by_phase.values():
         token_usage_total.merge(usage)
     run_summary = RunSummary(
-        status="partial" if subsystems_analyzed < subsystems_planned else "completed",
+        status="partial" if (subsystems_analyzed < subsystems_planned or synthesis_error_class) else "completed",
         subsystems_planned=subsystems_planned,
         subsystems_analyzed=subsystems_analyzed,
         subsystem_outcomes=count_outcomes(findings),
@@ -524,6 +526,7 @@ def build_analyze_manifest(
         token_usage_by_subsystem={f.subsystem: f.token_usage for f in findings},
         synthesis_items_dropped=len(synthesis_dropped or []),
         synthesis_dropped=list(synthesis_dropped or []),
+        synthesis_error_class=synthesis_error_class,
     )
     return RunManifest(
         stride_gpt_version=_stride_gpt_version(),
